@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 
 	"github.com/go-interpreter/wagon/wasm/internal/readpos"
 	"github.com/go-interpreter/wagon/wasm/leb128"
@@ -132,71 +133,99 @@ func (m *Module) readSection(r *readpos.ReadPos) (bool, error) {
 	switch s.ID {
 	case SectionIDCustom:
 		logger.Println("section custom")
-		// TODO: Read custom sections
+		if err = m.readSectionCustom(sectionReader); err == nil {
+			s.End = r.CurPos
+			s.Bytes = sectionBytes.Bytes()
+			m.Other = append(m.Other, s)
+		}
 	case SectionIDType:
 		logger.Println("section type")
 		if err = m.readSectionTypes(sectionReader); err == nil {
+			s.End = r.CurPos
+			s.Bytes = sectionBytes.Bytes()
 			m.Types.Section = s
 		}
 	case SectionIDImport:
 		logger.Println("section import")
 		if err = m.readSectionImports(sectionReader); err == nil {
+			s.End = r.CurPos
+			s.Bytes = sectionBytes.Bytes()
 			m.Import.Section = s
 		}
 	case SectionIDFunction:
 		logger.Println("section function")
 		if err = m.readSectionFunctions(sectionReader); err == nil {
+			s.End = r.CurPos
+			s.Bytes = sectionBytes.Bytes()
 			m.Function.Section = s
 		}
 	case SectionIDTable:
 		logger.Println("section table")
 		if err = m.readSectionTables(sectionReader); err == nil {
+			s.End = r.CurPos
+			s.Bytes = sectionBytes.Bytes()
 			m.Table.Section = s
 		}
 	case SectionIDMemory:
 		logger.Println("section memory")
 		if err = m.readSectionMemories(sectionReader); err == nil {
+			s.End = r.CurPos
+			s.Bytes = sectionBytes.Bytes()
 			m.Memory.Section = s
 		}
 	case SectionIDGlobal:
 		logger.Println("section global")
 		if err = m.readSectionGlobals(sectionReader); err == nil {
+			s.End = r.CurPos
+			s.Bytes = sectionBytes.Bytes()
 			m.Global.Section = s
 		}
 	case SectionIDExport:
 		logger.Println("section export")
 		if err = m.readSectionExports(sectionReader); err == nil {
+			s.End = r.CurPos
+			s.Bytes = sectionBytes.Bytes()
 			m.Export.Section = s
 		}
 	case SectionIDStart:
 		logger.Println("section start")
 		if err = m.readSectionStart(sectionReader); err == nil {
+			s.End = r.CurPos
+			s.Bytes = sectionBytes.Bytes()
 			m.Start.Section = s
 		}
 	case SectionIDElement:
 		logger.Println("section element")
 		if err = m.readSectionElements(sectionReader); err == nil {
+			s.End = r.CurPos
+			s.Bytes = sectionBytes.Bytes()
 			m.Elements.Section = s
 		}
 	case SectionIDCode:
 		logger.Println("section code")
 		if err = m.readSectionCode(sectionReader); err == nil {
+			s.End = r.CurPos
+			s.Bytes = sectionBytes.Bytes()
 			m.Code.Section = s
 		}
 	case SectionIDData:
 		logger.Println("section data")
 		if err = m.readSectionData(sectionReader); err == nil {
+			s.End = r.CurPos
+			s.Bytes = sectionBytes.Bytes()
 			m.Data.Section = s
 		}
 	default:
 		return false, InvalidSectionIDError(s.ID)
 	}
 
-	s.End = r.CurPos
-	s.Bytes = sectionBytes.Bytes()
-
 	logger.Println(err)
 	return false, err
+}
+
+func (m *Module) readSectionCustom(r io.Reader) error {
+	_, err := io.Copy(ioutil.Discard, r)
+	return err
 }
 
 // SectionTypes declares all function signatures that will be used in a module.
